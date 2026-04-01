@@ -1,0 +1,448 @@
+<Window x:Class="Playout.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Amazing Playout Control" Height="800" Width="1300" WindowStartupLocation="CenterScreen" Background="#1E1E1E" Foreground="White">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#3E3E42"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="2"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#4E4E52"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+        </Style>
+        <Style TargetType="ListView">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#333337"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#333337"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" BorderBrush="#3F3F46" BorderThickness="1" CornerRadius="4" Padding="10" Background="#252526" Margin="0,0,0,10">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button x:Name="OnAirBtn" Content="ON AIR" Width="100" Height="34" Background="#333" FontWeight="Bold" Click="OnAirBtn_Click"/>
+                    <Button x:Name="StopPlayoutBtn" Content="STOP" Width="100" Height="34" Background="#AA3939" FontWeight="Bold" Margin="8,0,0,0" Click="StopBtn_Click"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                    <Border x:Name="OnAirIndicator" Background="#333" CornerRadius="4" Padding="15,5" Margin="0,0,10,0">
+                        <TextBlock x:Name="OnAirText" Text="OFF AIR" FontWeight="Bold" Foreground="Gray"/>
+                    </Border>
+                    <TextBlock x:Name="ClockText" Text="00:00:00" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <DockPanel Grid.Column="0" Margin="0,0,10,0">
+                <TextBlock Text="MEDIA EXPLORER" DockPanel.Dock="Top" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" Foreground="#007ACC"/>
+                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                    <ComboBox x:Name="ExplorerDrivesCombo" SelectionChanged="ExplorerDrivesCombo_SelectionChanged" Height="28" Margin="0,0,0,5"/>
+                    <TextBox x:Name="FolderBox" Height="28" VerticalContentAlignment="Center" Margin="0,0,0,5" KeyDown="FolderBox_KeyDown"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="BrowseBtn" Content="Browse" Click="BrowseBtn_Click" Grid.Column="0" Height="30" Margin="0,0,2,0"/>
+                        <Button x:Name="ScanBtn" Content="Scan" Click="ScanBtn_Click" Grid.Column="1" Height="30" Margin="2,0,0,0"/>
+                    </Grid>
+                </StackPanel>
+
+                <Border BorderBrush="#3F3F46" BorderThickness="1" CornerRadius="2" Height="430">
+                    <TreeView x:Name="MediaTreeView" Background="#252526" Foreground="White" BorderThickness="0"
+                              SelectedItemChanged="MediaTreeView_SelectedItemChanged"
+                              MouseMove="MediaTreeView_MouseMove">
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Icon}" Margin="0,0,5,0" Foreground="#007ACC"/>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </Border>
+            </DockPanel>
+
+            <TabControl x:Name="MainTabs" Grid.Column="1" Background="#1E1E1E" BorderThickness="0" SelectionChanged="MainTabs_SelectionChanged">
+            <!-- LIVE TELECAST TAB -->
+            <TabItem Header="LIVE TELECAST" Foreground="White" Background="#2D2D30">
+                <Grid Margin="10">
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Button x:Name="PlayPlaylistBtn" Content="PLAY PLAYLIST" Width="140" Height="40" Background="#2D882D" FontWeight="Bold" Click="PlayPlaylistBtn_Click" IsEnabled="False"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0" HorizontalAlignment="Right">
+                                    <TextBlock x:Name="NextItemText" Text="NEXT: ---" Foreground="#007ACC" FontSize="12" FontWeight="Bold"/>
+                                    <TextBlock x:Name="CountdownText" Text="00:00:00" Foreground="Lime" FontSize="18" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="350"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0" BorderBrush="#3F3F46" BorderThickness="1" Background="Black" Margin="0,0,0,10">
+                                <Grid>
+                                    <Image x:Name="PreviewImage" Stretch="Uniform" />
+                                    <!-- Audio Meter Placeholder -->
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Height="100">
+                                        <ProgressBar x:Name="AudioMeterL" Value="0" Orientation="Vertical" Width="10" Background="#222" Foreground="Lime" Minimum="0" Maximum="100"/>
+                                        <ProgressBar x:Name="AudioMeterR" Value="0" Orientation="Vertical" Width="10" Background="#222" Foreground="Lime" Margin="2,0,0,0" Minimum="0" Maximum="100"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="1" BorderBrush="#3F3F46" BorderThickness="1">
+                                <ListView x:Name="PlaylistList" AllowDrop="True" Drop="PlaylistList_Drop" DragOver="PlaylistList_DragOver" BorderThickness="0">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Header="FILE NAME" Width="300">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="🎬" Margin="0,0,8,0" Foreground="#007ACC"/>
+                                                            <TextBlock Text="{Binding FileName}" Foreground="White"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Header="TYPE" Width="60" DisplayMemberBinding="{Binding Format}" />
+                                            <GridViewColumn Header="IN" Width="100">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBox Text="{Binding MarkIn, StringFormat=hh\\:mm\\:ss, UpdateSourceTrigger=LostFocus}" Width="80" Background="#333" Foreground="White" BorderThickness="0"/>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Header="OUT" Width="100">
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBox Text="{Binding MarkOut, StringFormat=hh\\:mm\\:ss, UpdateSourceTrigger=LostFocus}" Width="80" Background="#333" Foreground="White" BorderThickness="0"/>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Header="DURATION" Width="100" DisplayMemberBinding="{Binding DurationStr}" />
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </Border>
+
+                            <DockPanel Grid.Row="2" Margin="0,10,0,0">
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                    <Button Content="Load" Width="80" Click="LoadPlaylistBtn_Click"/>
+                                    <Button Content="Save" Width="80" Click="SavePlaylistBtn_Click"/>
+                                    <Button Content="Delete" Width="80" Click="DeletePlaylistBtn_Click" Background="#553939"/>
+                                </StackPanel>
+                                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="#AAA" FontStyle="Italic" Text="Ready."/>
+                            </DockPanel>
+                        </Grid>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- SCHEDULE TAB -->
+            <TabItem Header="SCHEDULE" Foreground="White" Background="#2D2D30">
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="DAY SCHEDULES" FontSize="18" FontWeight="Bold" Foreground="#007ACC" VerticalAlignment="Center"/>
+                        <Button Content="Create New Schedule" Click="CreateNewSchedule_Click" Height="30" Margin="15,0,0,0"/>
+                    </StackPanel>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <Calendar x:Name="ScheduleCalendar" Margin="0,0,0,10" SelectedDatesChanged="ScheduleCalendar_SelectedDatesChanged"/>
+                            <ListBox x:Name="DaySchedulesList" Height="250" BorderThickness="1" BorderBrush="#3F3F46" SelectionChanged="DaySchedulesList_SelectionChanged">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Name}" Foreground="White" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="1" Content="✕" Click="DeleteSchedule_Click" Background="#AA3939" Width="20" Height="20" Padding="0" Margin="5,0,0,0"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+
+                        <DockPanel Grid.Column="1" Margin="20,0,0,0">
+                        <TextBlock x:Name="ScheduleTitle" Text="Select a date or schedule" DockPanel.Dock="Top" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" Foreground="#007ACC"/>
+                        
+                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                            <Button x:Name="PlayScheduleBtn" Content="PLAY SCHEDULE" Click="PlayScheduleBtn_Click" Width="150" Height="35" Background="#2D882D" FontWeight="Bold" Margin="0,0,10,0" IsEnabled="False"/>
+                            <Button Content="Load to Playout" Click="LoadScheduleToPlayout_Click" Width="150" Height="35" Margin="0,0,10,0"/>
+                            <Button Content="Save Schedule" Click="SaveSchedule_Click" Width="150" Height="35" Background="#007ACC" FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <Border BorderBrush="#3F3F46" BorderThickness="1">
+                            <ListView x:Name="ScheduleItemsList" BorderThickness="0" AllowDrop="True" Drop="ScheduleItemsList_Drop" DragOver="PlaylistList_DragOver">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="START TIME" Width="100" DisplayMemberBinding="{Binding FixedStartUtc, StringFormat=HH:mm:ss}" />
+                                        <GridViewColumn Header="FILE NAME" Width="300" DisplayMemberBinding="{Binding FileName}" />
+                                        <GridViewColumn Header="DURATION" Width="100" DisplayMemberBinding="{Binding Duration}" />
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Border>
+                    </DockPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- FILLER & WEEKLY TAB -->
+            <TabItem Header="FILLER &amp; WEEKLY" Foreground="White" Background="#2D2D30">
+                <Grid Margin="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="350"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="WEEKLY FIXED PROGRAM" FontSize="18" FontWeight="Bold" Margin="0,0,0,15" Foreground="#007ACC"/>
+                        <TextBlock Text="Schedule recurring programs for every day of the week." Foreground="#AAA" TextWrapping="Wrap" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Day of Week:" Foreground="#AAA" Margin="0,0,0,5"/>
+                        <ComboBox x:Name="WeeklyDayCombo" Height="28" Margin="0,0,0,10">
+                            <ComboBoxItem Content="Monday" IsSelected="True"/>
+                            <ComboBoxItem Content="Tuesday"/>
+                            <ComboBoxItem Content="Wednesday"/>
+                            <ComboBoxItem Content="Thursday"/>
+                            <ComboBoxItem Content="Friday"/>
+                            <ComboBoxItem Content="Saturday"/>
+                            <ComboBoxItem Content="Sunday"/>
+                        </ComboBox>
+                        
+                        <TextBlock Text="Start Time (HH:mm):" Foreground="#AAA" Margin="0,0,0,5"/>
+                        <TextBox x:Name="WeeklyTimeBox" Text="12:00" Height="28" Margin="0,0,0,10"/>
+                        
+                        <Button Content="Add Fixed Program" Click="AddWeeklyProgram_Click" Height="30" Margin="0,10,0,20" Background="#007ACC"/>
+                        
+                        <TextBlock Text="AUTO FILLER POOL" FontSize="18" FontWeight="Bold" Margin="0,10,0,15" Foreground="#007ACC"/>
+                        <ListBox x:Name="FillerPoolList" Height="250" Background="#252526" Foreground="White" AllowDrop="True" Drop="FillerPoolList_Drop" DragOver="PlaylistList_DragOver">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding FileName}" Foreground="White" VerticalAlignment="Center"/>
+                                        <Button Grid.Column="1" Content="✕" Click="RemoveFiller_Click" Background="#AA3939" Width="20" Height="20" Padding="0" Margin="5,0,0,0"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock Text="Drag videos here to use as fillers when schedule is empty." Foreground="#666" FontSize="10" Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <DockPanel Grid.Column="1" Margin="20,0,0,0">
+                        <TextBlock Text="WEEKLY MASTER SCHEDULE" DockPanel.Dock="Top" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" Foreground="#007ACC"/>
+                        <Border BorderBrush="#3F3F46" BorderThickness="1">
+                            <ListView x:Name="WeeklyProgramsList" Background="#252526" Foreground="White">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="DAY" Width="100" DisplayMemberBinding="{Binding DayOfWeek}" />
+                                        <GridViewColumn Header="START" Width="100" DisplayMemberBinding="{Binding StartTime}" />
+                                        <GridViewColumn Header="FILE NAME" Width="300" DisplayMemberBinding="{Binding FileName}" />
+                                        <GridViewColumn Header="ACTION" Width="80">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="Remove" Click="RemoveWeekly_Click" Background="#AA3939" Height="20" Padding="5,0"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Border>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- CG DESIGNER TAB -->
+            <TabItem Header="CG DESIGNER" Foreground="White" Background="#2D2D30">
+                <Grid Margin="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="CG ELEMENTS" FontSize="18" FontWeight="Bold" Margin="0,0,0,15" Foreground="#007ACC"/>
+                        <Button Content="Add Logo" Click="AddCGLogo_Click" Height="30" Margin="0,0,0,5"/>
+                        <Button Content="Add Ticker" Click="AddCGTicker_Click" Height="30" Margin="0,0,0,5"/>
+                        <Button Content="Add Lower Third" Click="AddCGLowerThird_Click" Height="30" Margin="0,0,0,5"/>
+                        <Button Content="Add Image Overlay" Click="AddCGImage_Click" Height="30" Margin="0,0,0,5"/>
+                        <Button Content="Add GIF Overlay" Click="AddCGGif_Click" Height="30" Margin="0,0,0,5"/>
+                        <Button Content="Add HTML Overlay" Click="AddCGHtml_Click" Height="30" Margin="0,0,0,5"/>
+                        <Button Content="Add Video Overlay" Click="AddCGVideo_Click" Height="30" Margin="0,0,0,20"/>
+                        
+                        <TextBlock Text="ACTIVE ELEMENTS" FontSize="14" FontWeight="Bold" Margin="0,0,0,5" Foreground="#888"/>
+                        <ListBox x:Name="CGElementsList" Height="300" BorderThickness="1" BorderBrush="#3F3F46" SelectionChanged="CGElementsList_SelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsVisible}" Foreground="White" Margin="5"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+
+                    <Grid Grid.Column="1" Margin="20,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="250"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Border Grid.Row="0" BorderBrush="#3F3F46" BorderThickness="1" Background="Black">
+                            <Grid>
+                                <Image x:Name="CGDesignerPreview" Stretch="Uniform" MouseLeftButtonDown="CGDesignerPreview_MouseLeftButtonDown" MouseMove="CGDesignerPreview_MouseMove" MouseLeftButtonUp="CGDesignerPreview_MouseLeftButtonUp"/>
+                                <Canvas x:Name="CGDesignerCanvas" IsHitTestVisible="False">
+                                    <!-- Elements will be drawn here or handled via the Image mouse events -->
+                                </Canvas>
+                                <TextBlock Text="PREVIEW / DESIGN AREA" VerticalAlignment="Top" HorizontalAlignment="Center" Foreground="#444" Margin="10"/>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Row="1" BorderBrush="#3F3F46" BorderThickness="1,0,1,1" Padding="15" Background="#252526">
+                            <StackPanel x:Name="CGPropertiesPanel" Visibility="Collapsed">
+                                <TextBlock Text="ELEMENT PROPERTIES" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" Foreground="#007ACC"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                        <TextBlock Text="Name:" Foreground="#AAA" Margin="0,0,0,3"/>
+                                        <TextBox x:Name="CGPropName" Height="26" Margin="0,0,0,10"/>
+                                        <TextBlock Text="Content / Text:" Foreground="#AAA" Margin="0,0,0,3"/>
+                                        <TextBox x:Name="CGPropContent" Height="26" Margin="0,0,0,10"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                                <TextBlock Text="X (0-1):" Foreground="#AAA" Margin="0,0,0,3"/>
+                                                <TextBox x:Name="CGPropX" Height="26"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                                <TextBlock Text="Y (0-1):" Foreground="#AAA" Margin="0,0,0,3"/>
+                                                <TextBox x:Name="CGPropY" Height="26"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <Button Content="Apply Changes" Click="ApplyCGChanges_Click" Height="30" Margin="0,15,0,0" Background="#007ACC" FontWeight="Bold"/>
+                                        <Button Content="Remove Element" Click="RemoveCGElement_Click" Height="26" Margin="0,5,0,0" Background="#AA3939"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- AS-RUN LOGS TAB -->
+            <TabItem Header="AS-RUN LOGS" Foreground="White" Background="#2D2D30">
+                <Grid Margin="20">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="AS-RUN PLAYOUT LOGS" FontSize="18" FontWeight="Bold" Foreground="#007ACC" VerticalAlignment="Center"/>
+                            <Button Content="Refresh Log" Click="RefreshLog_Click" Width="100" Margin="20,0,0,0"/>
+                            <Button Content="Export to CSV" Click="ExportLog_Click" Width="100" Margin="10,0,0,0"/>
+                            <Button Content="Clear Logs" Click="ClearLogs_Click" Width="100" Margin="10,0,0,0" Background="#AA3939"/>
+                        </StackPanel>
+                        <Border BorderBrush="#3F3F46" BorderThickness="1">
+                            <ListView x:Name="AsRunLogList" Background="#252526" Foreground="White">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="TIMESTAMP" Width="150" DisplayMemberBinding="{Binding Timestamp, StringFormat=yyyy-MM-dd HH:mm:ss}" />
+                                        <GridViewColumn Header="FILE NAME" Width="300" DisplayMemberBinding="{Binding FileName}" />
+                                        <GridViewColumn Header="EVENT" Width="100" DisplayMemberBinding="{Binding EventType}" />
+                                        <GridViewColumn Header="DURATION" Width="100" DisplayMemberBinding="{Binding Duration}" />
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Border>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- SETTINGS TAB -->
+            <TabItem Header="SETTINGS" Foreground="White" Background="#2D2D30">
+                <StackPanel Margin="20">
+                    <TextBlock Text="SYSTEM SETTINGS" FontSize="18" FontWeight="Bold" Margin="0,0,0,15" Foreground="#007ACC"/>
+                    <CheckBox x:Name="UseFfmpegCheck" Content="Enable GPU-accelerated FFmpeg Decoding" IsChecked="True" Foreground="#CCC" Margin="0,0,0,10"/>
+                    <CheckBox x:Name="NdiCheck" Content="Enable NDI Broadcast Output" Foreground="#CCC" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="NDI Source Name:" VerticalAlignment="Center" Foreground="#AAA" Margin="0,0,10,0"/>
+                        <TextBox x:Name="NdiNameBox" Width="200" Text="Playout Channel 1"/>
+                    </StackPanel>
+                    
+                    <CheckBox x:Name="StreamCheck" Content="Enable RTMP/SRT Streaming" Foreground="#CCC" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Stream URL:" VerticalAlignment="Center" Foreground="#AAA" Margin="0,0,10,0"/>
+                        <TextBox x:Name="StreamUrlBox" Width="400" Text="rtmp://localhost/live/stream"/>
+                    </StackPanel>
+                    <CheckBox x:Name="LoopCheck" Content="Loop Entire Playlist" Foreground="#CCC" IsChecked="True" Margin="0,0,0,20"/>
+                    
+                    <TextBlock Text="DATA MANAGEMENT" FontSize="18" FontWeight="Bold" Margin="0,0,0,15" Foreground="#007ACC"/>
+                    <Button Content="Export Playout Log (CSV)" Width="200" HorizontalAlignment="Left" Click="ExportLog_Click" Height="30"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+        </Grid>
+    </Grid>
+</Window>
