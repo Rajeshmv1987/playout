@@ -50,3 +50,4 @@ C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\bin\Release\net9.0-
 C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\bin\Release\net9.0-windows\runtimes\win-arm64\native\e_sqlite3.dll
 C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\bin\Release\net9.0-windows\runtimes\win-x64\native\e_sqlite3.dll
 C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\bin\Release\net9.0-windows\runtimes\win-x86\native\e_sqlite3.dll
+C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\obj\Release\net9.0-windows\Playout.Wpf.sourcelink.json

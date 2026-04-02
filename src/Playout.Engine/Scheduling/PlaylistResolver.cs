@@ -39,7 +39,7 @@ public sealed class PlaylistResolver
             var item = _items[i];
             var start = item.FixedStartUtc ?? nowUtc;
             var dur = item.Duration;
-            var end = start + dur + item.Padding;
+            var end = start + dur;
 
             if (nowUtc >= start && nowUtc < end)
             {
@@ -87,6 +87,7 @@ public sealed class PlaylistResolver
                 MediaPath = fillerMedia.Path,
                 FileName = fillerMedia.FileName,
                 FixedStartUtc = nowUtc,
+                StartType = StartType.Follow,
                 Duration = gapDuration,
                 MarkIn = TimeSpan.Zero,
                 MarkOut = fillerMedia.Duration

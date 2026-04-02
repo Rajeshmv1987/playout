@@ -10,3 +10,4 @@ C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Release\net9.0\
 C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Release\net9.0\Playout.Core.pdb
 C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Release\net9.0\ref\Playout.Core.dll
 C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Release\net9.0\Playout.Core.csproj.AssemblyReference.cache
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Release\net9.0\Playout.Core.sourcelink.json

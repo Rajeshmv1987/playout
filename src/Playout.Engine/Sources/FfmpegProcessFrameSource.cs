@@ -76,7 +76,7 @@ public sealed class FfmpegProcessFrameSource : IFrameSource
         
         var endAt = item.FixedStartUtc.HasValue 
             ? item.FixedStartUtc.Value + item.Duration 
-            : DateTimeOffset.UtcNow + item.Duration;
+            : DateTimeOffset.Now + item.Duration;
 
         try
         {
@@ -132,7 +132,7 @@ public sealed class FfmpegProcessFrameSource : IFrameSource
                 }
                 if (shouldExit) break;
 
-                if (DateTimeOffset.UtcNow >= endAt) break;
+                if (DateTimeOffset.Now >= endAt) break;
             }
         }
         finally

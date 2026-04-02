@@ -50,3 +50,4 @@ C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\obj\Debug\net9.0-wi
 C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\obj\Debug\net9.0-windows\Playout.Wpf.pdb
 C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\obj\Debug\net9.0-windows\Playout.Wpf.genruntimeconfig.cache
 C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\obj\Debug\net9.0-windows\ref\Playout.Wpf.dll
+C:\Users\JN Programing\Desktop\tvchannel\tv\apps\Playout.Wpf\obj\Debug\net9.0-windows\Playout.Wpf.sourcelink.json

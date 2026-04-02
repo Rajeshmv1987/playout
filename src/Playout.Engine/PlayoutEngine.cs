@@ -40,7 +40,7 @@ public sealed class PlayoutEngine
 
     public (float Left, float Right) GetAudioLevels() => (_leftLevel, _rightLevel);
     public PlaylistItem? GetCurrentItem() => _currentItem;
-    public PlaylistItem? GetNextItem() => _resolver.NowOrNext(DateTimeOffset.UtcNow.AddSeconds(1), _fillers);
+    public PlaylistItem? GetNextItem() => _resolver.NowOrNext(DateTimeOffset.Now.AddSeconds(1), _fillers);
 
     public async Task RunAsync(CancellationToken ct)
     {
@@ -52,7 +52,7 @@ public sealed class PlayoutEngine
         {
             while (!ct.IsCancellationRequested)
             {
-                var now = DateTimeOffset.UtcNow;
+                var now = DateTimeOffset.Now;
 
                 // 1. Check for Manual Playlist (Highest Priority)
                 if (_manualPlaylist != null && manualIndex < _manualPlaylist.Count())
@@ -110,10 +110,18 @@ public sealed class PlayoutEngine
                 }
 
                 lastItem = scheduledItem;
-                _currentItem = scheduledItem;
-                _logger?.LogEntry(scheduledItem, "Started");
-                await PlayItemAsync(scheduledItem, ct);
-                _logger?.LogEntry(scheduledItem, "Completed");
+                var playItem = CreatePlayItemForNow(scheduledItem, now);
+                if (playItem == null)
+                {
+                    _currentItem = null;
+                    await Task.Delay(10, ct);
+                    continue;
+                }
+
+                _currentItem = playItem;
+                _logger?.LogEntry(playItem, "Started");
+                await PlayItemAsync(playItem, ct);
+                _logger?.LogEntry(playItem, "Completed");
             }
         }
         finally
@@ -142,9 +150,42 @@ public sealed class PlayoutEngine
             if (item.FixedStartUtc.HasValue && item.Duration > TimeSpan.Zero)
             {
                 var endAt = item.FixedStartUtc.Value + item.Duration;
-                if (DateTimeOffset.UtcNow >= endAt) break;
+                if (DateTimeOffset.Now >= endAt) break;
             }
         }
+    }
+
+    private static PlaylistItem? CreatePlayItemForNow(PlaylistItem scheduledItem, DateTimeOffset now)
+    {
+        if (!scheduledItem.FixedStartUtc.HasValue || scheduledItem.Duration <= TimeSpan.Zero)
+        {
+            return scheduledItem;
+        }
+
+        var start = scheduledItem.FixedStartUtc.Value;
+        if (now <= start) return scheduledItem;
+
+        var elapsed = now - start;
+        if (elapsed <= TimeSpan.Zero) return scheduledItem;
+        if (elapsed >= scheduledItem.Duration) return null;
+
+        var newMarkIn = scheduledItem.MarkIn + elapsed;
+        if (scheduledItem.MarkOut > TimeSpan.Zero && newMarkIn >= scheduledItem.MarkOut) return null;
+
+        return new PlaylistItem
+        {
+            Id = scheduledItem.Id,
+            MediaId = scheduledItem.MediaId,
+            MediaPath = scheduledItem.MediaPath,
+            FileName = scheduledItem.FileName,
+            FixedStartUtc = now,
+            StartType = scheduledItem.StartType,
+            Duration = scheduledItem.Duration - elapsed,
+            Padding = TimeSpan.Zero,
+            SortOrder = scheduledItem.SortOrder,
+            MarkIn = newMarkIn,
+            MarkOut = scheduledItem.MarkOut
+        };
     }
 
     private void UpdateLevels(VideoFrame frame)

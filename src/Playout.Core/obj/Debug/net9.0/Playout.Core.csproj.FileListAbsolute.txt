@@ -10,3 +10,4 @@ C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Debug\net9.0\Pl
 C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Debug\net9.0\refint\Playout.Core.dll
 C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Debug\net9.0\Playout.Core.pdb
 C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Debug\net9.0\ref\Playout.Core.dll
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Debug\net9.0\Playout.Core.sourcelink.json

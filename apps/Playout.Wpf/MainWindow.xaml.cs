@@ -104,9 +104,11 @@ public partial class MainWindow : Window
     readonly ObservableCollection<Media> _fillerPool = new();
 
     readonly ObservableCollection<MediaNode> _mediaTree = new();
+    readonly ObservableCollection<string> _explorerFiles = new();
     bool _isOnAir;
     private PlaybackMode _activeMode = PlaybackMode.None;
     private readonly System.Threading.SemaphoreSlim _playSwitchLock = new(1, 1);
+    System.Windows.Point _dragStart;
 
     enum PlaybackMode
     {
@@ -120,6 +122,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         _db = new Playout.Core.Services.DatabaseService();
         MediaTreeView.ItemsSource = _mediaTree;
+        ExplorerFilesList.ItemsSource = _explorerFiles;
         PlaylistList.ItemsSource = _playlist;
         CGElementsList.ItemsSource = _cgElements;
         DaySchedulesList.ItemsSource = _daySchedules;
@@ -151,9 +154,27 @@ public partial class MainWindow : Window
                 var current = _engine.GetCurrentItem();
                 var next = _engine.GetNextItem();
 
+                SourceModeText.Text = _activeMode switch
+                {
+                    PlaybackMode.Playlist => "MODE: PLAYLIST",
+                    PlaybackMode.Schedule => "MODE: SCHEDULE",
+                    _ => "MODE: ---"
+                };
+
                 if (current != null)
                 {
-                    var remaining = (current.FixedStartUtc + current.Duration) - DateTimeOffset.UtcNow;
+                    NowPlayingText.Text = $"NOW: {current.FileName}";
+                    if (current.FixedStartUtc.HasValue)
+                    {
+                        var st = current.FixedStartUtc.Value.ToLocalTime();
+                        var et = st + current.Duration;
+                        NowRangeText.Text = $"TIME: {st:HH:mm:ss}  →  {et:HH:mm:ss}";
+                    }
+                    else
+                    {
+                        NowRangeText.Text = "TIME: --:--:--  →  --:--:--";
+                    }
+                    var remaining = (current.FixedStartUtc + current.Duration) - DateTimeOffset.Now;
                     if (remaining.HasValue && remaining.Value > TimeSpan.Zero)
                     {
                         CountdownText.Text = remaining.Value.ToString(@"hh\:mm\:ss");
@@ -162,9 +183,30 @@ public partial class MainWindow : Window
                     {
                         CountdownText.Text = "00:00:00";
                     }
+
+                    if (_activeMode == PlaybackMode.Playlist)
+                    {
+                        var idx = _playlist.ToList().FindIndex(p => string.Equals(p.FullPath, current.MediaPath, StringComparison.OrdinalIgnoreCase));
+                        if (idx >= 0)
+                        {
+                            PlaylistList.SelectedIndex = idx;
+                            PlaylistList.ScrollIntoView(PlaylistList.SelectedItem);
+                        }
+                    }
+                    else if (_activeMode == PlaybackMode.Schedule)
+                    {
+                        var idx = _scheduleItems.ToList().FindIndex(p => string.Equals(p.MediaPath, current.MediaPath, StringComparison.OrdinalIgnoreCase));
+                        if (idx >= 0)
+                        {
+                            ScheduleItemsList.SelectedIndex = idx;
+                            ScheduleItemsList.ScrollIntoView(ScheduleItemsList.SelectedItem);
+                        }
+                    }
                 }
                 else
                 {
+                    NowPlayingText.Text = "NOW: ---";
+                    NowRangeText.Text = "TIME: --:--:--  →  --:--:--";
                     CountdownText.Text = "00:00:00";
                 }
 
@@ -183,6 +225,9 @@ public partial class MainWindow : Window
                 AudioMeterR.Value = 0;
                 CountdownText.Text = "00:00:00";
                 NextItemText.Text = "NEXT: ---";
+                NowPlayingText.Text = "NOW: ---";
+                SourceModeText.Text = "MODE: ---";
+                NowRangeText.Text = "TIME: --:--:--  →  --:--:--";
             }
         };
         _meterTimer.Start();
@@ -248,16 +293,94 @@ public partial class MainWindow : Window
         UpdateControlStates();
     }
 
-    void OnAirBtn_Click(object sender, RoutedEventArgs e)
+    async void OnAirBtn_Click(object sender, RoutedEventArgs e)
     {
         _isOnAir = !_isOnAir;
         if (!_isOnAir)
         {
             _cts?.Cancel();
             _activeMode = PlaybackMode.None;
+            UpdateControlStates();
+            SetStatus("OFF AIR.");
+            return;
         }
         UpdateControlStates();
-        SetStatus(_isOnAir ? "ON AIR enabled. Choose Play Playlist or Play Schedule." : "OFF AIR.");
+        SetStatus("ON AIR enabled. Checking today schedule...");
+        if (_cts == null)
+        {
+            var scheduledItems = await LoadTodayScheduledItemsAsync();
+            if (scheduledItems.Count > 0)
+            {
+                SetStatus("Today schedule found. Playing schedule.");
+                await SwitchAndStartAsync(
+                    mode: PlaybackMode.Schedule,
+                    scheduledItems: scheduledItems,
+                    manualItems: new List<PlaylistItem>(),
+                    enableAutomation: false);
+            }
+            else
+            {
+                SetStatus("Today schedule is empty. Playing filler.");
+                await SwitchAndStartAsync(
+                    mode: PlaybackMode.Schedule,
+                    scheduledItems: new List<PlaylistItem>(),
+                    manualItems: new List<PlaylistItem>(),
+                    enableAutomation: true);
+            }
+        }
+    }
+
+    async Task<List<PlaylistItem>> LoadTodayScheduledItemsAsync()
+    {
+        var schedules = await _db.GetSchedulesForDateAsync(DateTime.Today);
+        var all = new List<PlaylistItem>();
+        foreach (var s in schedules)
+        {
+            var items = await _db.GetPlaylistItemsAsync(s.Id);
+            EnsureScheduleTimeline(s, items);
+            all.AddRange(items);
+        }
+        return all
+            .OrderBy(i => i.FixedStartUtc ?? DateTimeOffset.MaxValue)
+            .ThenBy(i => i.SortOrder)
+            .ToList();
+    }
+
+    void EnsureScheduleTimeline(Schedule schedule, IList<PlaylistItem> items)
+    {
+        if (items.Count == 0) return;
+
+        bool invalid = false;
+        DateTimeOffset? last = null;
+        foreach (var it in items.OrderBy(i => i.SortOrder))
+        {
+            if (it.FixedStartUtc == null)
+            {
+                invalid = true;
+                break;
+            }
+            if (last != null && it.FixedStartUtc <= last)
+            {
+                invalid = true;
+                break;
+            }
+            last = it.FixedStartUtc;
+        }
+
+        if (!invalid) return;
+
+        var current = schedule.StartTimeUtc == default ? DateTimeOffset.Now : schedule.StartTimeUtc.ToLocalTime();
+        int idx = 0;
+        foreach (var it in items.OrderBy(i => i.SortOrder))
+        {
+            if (it.Duration == TimeSpan.Zero)
+            {
+                it.Duration = it.EffectiveDuration;
+            }
+            it.SortOrder = idx++;
+            it.FixedStartUtc = current;
+            current += it.Duration + it.Padding;
+        }
     }
     
     void SetStatus(string msg)
@@ -353,6 +476,17 @@ public partial class MainWindow : Window
         if (e.NewValue is MediaNode node && node.IsDirectory)
         {
             node.LoadChildren();
+            PopulateExplorerFiles(node.FullPath);
+        }
+        else if (e.NewValue is MediaNode fileNode && !fileNode.IsDirectory)
+        {
+            var dir = System.IO.Path.GetDirectoryName(fileNode.FullPath);
+            if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
+            {
+                PopulateExplorerFiles(dir);
+                ExplorerFilesList.SelectedItem = fileNode.FullPath;
+                ExplorerFilesList.ScrollIntoView(ExplorerFilesList.SelectedItem);
+            }
         }
     }
 
@@ -365,6 +499,163 @@ public partial class MainWindow : Window
             data.SetData(System.Windows.DataFormats.FileDrop, new[] { node.FullPath });
             System.Windows.DragDrop.DoDragDrop(MediaTreeView, data, System.Windows.DragDropEffects.Copy);
         }
+    }
+
+    void PopulateExplorerFiles(string folder)
+    {
+        _explorerFiles.Clear();
+        var exts = new[] { ".mp4", ".mov", ".mkv", ".avi", ".mxf" };
+        try
+        {
+            foreach (var f in Directory.EnumerateFiles(folder))
+            {
+                var ext = System.IO.Path.GetExtension(f).ToLowerInvariant();
+                if (exts.Contains(ext)) _explorerFiles.Add(f);
+            }
+        }
+        catch { }
+    }
+
+    void ExplorerFilesList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStart = e.GetPosition(null);
+        var element = e.OriginalSource as DependencyObject;
+        while (element != null && element is not System.Windows.Controls.ListBoxItem)
+        {
+            element = VisualTreeHelper.GetParent(element);
+        }
+        if (element is System.Windows.Controls.ListBoxItem item && !item.IsSelected)
+        {
+            ExplorerFilesList.SelectedItem = item.DataContext;
+        }
+    }
+
+    void ExplorerFilesList_PreviewMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (e.LeftButton != System.Windows.Input.MouseButtonState.Pressed) return;
+        if (ExplorerFilesList.SelectedItems.Count == 0) return;
+
+        var pos = e.GetPosition(null);
+        if (Math.Abs(pos.X - _dragStart.X) <= SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(pos.Y - _dragStart.Y) <= SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        var selected = ExplorerFilesList.SelectedItems.Cast<string>().ToArray();
+        var data = new System.Windows.DataObject();
+        data.SetData(System.Windows.DataFormats.FileDrop, selected);
+        if (selected.Length == 1) data.SetData(System.Windows.DataFormats.Text, selected[0]);
+        System.Windows.DragDrop.DoDragDrop(ExplorerFilesList, data, System.Windows.DragDropEffects.Copy);
+    }
+
+    void ExplorerSelectAll_Click(object sender, RoutedEventArgs e)
+    {
+        ExplorerFilesList.SelectAll();
+    }
+
+    async void ExplorerAddToPlaylist_Click(object sender, RoutedEventArgs e)
+    {
+        var paths = ExplorerFilesList.SelectedItems.Cast<string>().ToList();
+        await AddPathsToPlaylistAsync(paths);
+    }
+
+    async void ExplorerAddToSchedule_Click(object sender, RoutedEventArgs e)
+    {
+        var paths = ExplorerFilesList.SelectedItems.Cast<string>().ToList();
+        await AddPathsToScheduleAsync(paths);
+    }
+
+    async void ExplorerAddToFiller_Click(object sender, RoutedEventArgs e)
+    {
+        var paths = ExplorerFilesList.SelectedItems.Cast<string>().ToList();
+        await AddPathsToFillerAsync(paths);
+    }
+
+    async Task AddPathsToPlaylistAsync(IEnumerable<string> paths)
+    {
+        var exts = new[] { ".mp4", ".mov", ".mkv", ".avi", ".mxf" };
+        var list = paths.Where(p => exts.Contains(System.IO.Path.GetExtension(p).ToLowerInvariant())).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        foreach (var p in list)
+        {
+            var meta = await GetVideoMetadata(p);
+            _playlist.Add(new PlaylistItemView { FullPath = p, Duration = meta.Duration });
+            await _db.SaveMediaAsync(new Media
+            {
+                Id = Guid.NewGuid(),
+                Path = p,
+                FileName = System.IO.Path.GetFileName(p),
+                Duration = meta.Duration,
+                Width = meta.Width,
+                Height = meta.Height,
+                Category = "Program"
+            });
+        }
+        SetStatus(list.Count > 0 ? $"Added {list.Count} items to playlist." : "No compatible videos selected.");
+        UpdateControlStates();
+    }
+
+    async Task AddPathsToScheduleAsync(IEnumerable<string> paths)
+    {
+        if (DaySchedulesList.SelectedItem is not Schedule s)
+        {
+            SetStatus("Please select a schedule first.");
+            return;
+        }
+        var exts = new[] { ".mp4", ".mov", ".mkv", ".avi", ".mxf" };
+        var list = paths.Where(p => exts.Contains(System.IO.Path.GetExtension(p).ToLowerInvariant())).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        foreach (var p in list)
+        {
+            var meta = await GetVideoMetadata(p);
+            _scheduleItems.Add(new PlaylistItem
+            {
+                Id = Guid.NewGuid(),
+                MediaPath = p,
+                FileName = System.IO.Path.GetFileName(p),
+                StartType = StartType.Hard,
+                Duration = meta.Duration,
+                MarkIn = TimeSpan.Zero,
+                MarkOut = meta.Duration,
+                SortOrder = _scheduleItems.Count
+            });
+            await _db.SaveMediaAsync(new Media
+            {
+                Id = Guid.NewGuid(),
+                Path = p,
+                FileName = System.IO.Path.GetFileName(p),
+                Duration = meta.Duration,
+                Width = meta.Width,
+                Height = meta.Height,
+                Category = "Program"
+            });
+        }
+        EnsureScheduleTimeline(s, _scheduleItems);
+        SetStatus(list.Count > 0 ? $"Added {list.Count} items to schedule." : "No compatible videos selected.");
+        UpdateControlStates();
+    }
+
+    async Task AddPathsToFillerAsync(IEnumerable<string> paths)
+    {
+        var exts = new[] { ".mp4", ".mov", ".mkv", ".avi", ".mxf" };
+        var expanded = ExpandDroppedPaths(paths, exts).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        int added = 0;
+        foreach (var p in expanded)
+        {
+            if (_fillerPool.Any(x => string.Equals(x.Path, p, StringComparison.OrdinalIgnoreCase))) continue;
+            var meta = await GetVideoMetadata(p);
+            var media = new Media
+            {
+                Id = Guid.NewGuid(),
+                Path = p,
+                FileName = System.IO.Path.GetFileName(p),
+                Duration = meta.Duration,
+                Category = "Filler"
+            };
+            await _db.SaveMediaAsync(media);
+            _fillerPool.Add(media);
+            added++;
+        }
+        SetStatus(added > 0 ? $"Added {added} fillers." : "No fillers added.");
     }
 
     bool TryGetSelectedExplorerFilePath(out string path)
@@ -506,15 +797,11 @@ public partial class MainWindow : Window
             if (exts.Contains(ext))
             {
                 var meta = await GetVideoMetadata(p);
-                var lastItem = _scheduleItems.LastOrDefault();
-                var startTime = lastItem != null ? lastItem.FixedStartUtc!.Value + lastItem.Duration : s.StartTimeUtc;
-
                 var item = new PlaylistItem
                 {
                     Id = Guid.NewGuid(),
                     MediaPath = p,
                     FileName = System.IO.Path.GetFileName(p),
-                    FixedStartUtc = startTime,
                     Duration = meta.Duration,
                     MarkIn = TimeSpan.Zero,
                     MarkOut = meta.Duration,
@@ -533,6 +820,8 @@ public partial class MainWindow : Window
                 });
             }
         }
+
+        EnsureScheduleTimeline(s, _scheduleItems);
     }
 
     async void PlayPlaylistBtn_Click(object sender, RoutedEventArgs e)
@@ -576,7 +865,7 @@ public partial class MainWindow : Window
             SetStatus("Enable ON AIR first.");
             return;
         }
-        if (DaySchedulesList.SelectedItem is not Schedule)
+        if (DaySchedulesList.SelectedItem is not Schedule schedule)
         {
             SetStatus("Select a schedule first.");
             return;
@@ -589,21 +878,15 @@ public partial class MainWindow : Window
 
         var scheduledItems = _scheduleItems
             .OrderBy(i => i.SortOrder)
-            .ThenBy(i => i.FixedStartUtc ?? DateTimeOffset.MinValue)
             .ToList();
 
-        var current = DateTimeOffset.UtcNow;
-        foreach (var it in scheduledItems)
-        {
-            it.FixedStartUtc = current;
-            current += it.Duration + it.Padding;
-        }
+        EnsureScheduleTimeline(schedule, scheduledItems);
 
         await SwitchAndStartAsync(
             mode: PlaybackMode.Schedule,
             scheduledItems: scheduledItems,
             manualItems: new List<PlaylistItem>(),
-            enableAutomation: true);
+            enableAutomation: false);
     }
 
     async Task SwitchAndStartAsync(PlaybackMode mode, List<PlaylistItem> scheduledItems, List<PlaylistItem> manualItems, bool enableAutomation)
@@ -719,7 +1002,7 @@ public partial class MainWindow : Window
 
         _engine = new PlayoutEngine(_source, _sink, scheduledItems)
         {
-            Loop = LoopCheck.IsChecked == true
+            Loop = _activeMode == PlaybackMode.Playlist && LoopCheck.IsChecked == true
         };
         _engine.SetCGManager(_cgManager);
         _engine.SetLogger(_logger);
@@ -921,24 +1204,93 @@ public partial class MainWindow : Window
             if (e.Data.GetData(System.Windows.DataFormats.Text) is string path) paths.Add(path);
         }
 
-        foreach (var p in paths)
+        var expanded = ExpandDroppedPaths(paths, exts);
+        foreach (var p in expanded)
         {
-            var ext = System.IO.Path.GetExtension(p).ToLowerInvariant();
-            if (exts.Contains(ext))
+            if (_fillerPool.Any(x => string.Equals(x.Path, p, StringComparison.OrdinalIgnoreCase))) continue;
+            var meta = await GetVideoMetadata(p);
+            var media = new Media
             {
-                var meta = await GetVideoMetadata(p);
-                var media = new Media 
-                {
-                    Id = Guid.NewGuid(),
-                    Path = p,
-                    FileName = System.IO.Path.GetFileName(p),
-                    Duration = meta.Duration,
-                    Category = "Filler"
-                };
-                await _db.SaveMediaAsync(media);
-                _fillerPool.Add(media);
-            }
+                Id = Guid.NewGuid(),
+                Path = p,
+                FileName = System.IO.Path.GetFileName(p),
+                Duration = meta.Duration,
+                Category = "Filler"
+            };
+            await _db.SaveMediaAsync(media);
+            _fillerPool.Add(media);
         }
+    }
+
+    async void WeeklyProgramsList_Drop(object sender, System.Windows.DragEventArgs e)
+    {
+        var exts = new[] { ".mp4", ".mov", ".mkv", ".avi", ".mxf" };
+        var paths = new List<string>();
+
+        if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+        {
+            if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is string[] files) paths.AddRange(files);
+        }
+        else if (e.Data.GetDataPresent(System.Windows.DataFormats.Text))
+        {
+            if (e.Data.GetData(System.Windows.DataFormats.Text) is string path) paths.Add(path);
+        }
+
+        DayOfWeek day = DayOfWeek.Monday;
+        if (WeeklyDayCombo.SelectedItem is System.Windows.Controls.ComboBoxItem cbi && cbi.Content is string s)
+        {
+            if (!Enum.TryParse<DayOfWeek>(s, out day)) day = DayOfWeek.Monday;
+        }
+
+        var expanded = ExpandDroppedPaths(paths, exts);
+        foreach (var p in expanded)
+        {
+            if (_weeklyPrograms.Any(w =>
+                    w.DayOfWeek == day &&
+                    string.Equals(w.MediaPath, p, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            var meta = await GetVideoMetadata(p);
+            _weeklyPrograms.Add(new WeeklyProgram
+            {
+                DayOfWeek = day,
+                StartTime = TimeSpan.Zero,
+                MediaPath = p,
+                Duration = meta.Duration
+            });
+        }
+
+        RecalculateWeeklyTimes(day);
+        SetStatus($"Weekly programs updated: {day} (auto times)");
+    }
+
+    static List<string> ExpandDroppedPaths(IEnumerable<string> inputs, string[] exts)
+    {
+        var result = new List<string>();
+        foreach (var p in inputs.Where(x => !string.IsNullOrWhiteSpace(x)))
+        {
+            var path = p.Trim();
+            if (Directory.Exists(path))
+            {
+                try
+                {
+                    foreach (var f in Directory.EnumerateFiles(path))
+                    {
+                        var ext = System.IO.Path.GetExtension(f).ToLowerInvariant();
+                        if (exts.Contains(ext)) result.Add(f);
+                    }
+                }
+                catch { }
+                continue;
+            }
+
+            if (!File.Exists(path)) continue;
+            var ext2 = System.IO.Path.GetExtension(path).ToLowerInvariant();
+            if (exts.Contains(ext2)) result.Add(path);
+        }
+        return result;
     }
 
     async void RemoveFiller_Click(object sender, RoutedEventArgs e)
@@ -959,27 +1311,31 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (TimeSpan.TryParse(WeeklyTimeBox.Text, out var startTime))
+        var meta = await GetVideoMetadata(path);
+        DayOfWeek day = DayOfWeek.Monday;
+        if (WeeklyDayCombo.SelectedItem is System.Windows.Controls.ComboBoxItem cbi && cbi.Content is string s)
         {
-            var meta = await GetVideoMetadata(path);
-            DayOfWeek day = DayOfWeek.Monday;
-            if (WeeklyDayCombo.SelectedItem is System.Windows.Controls.ComboBoxItem cbi && cbi.Content is string s)
-            {
-                if (!Enum.TryParse<DayOfWeek>(s, out day)) day = DayOfWeek.Monday;
-            }
-            var weekly = new WeeklyProgram
-            {
-                DayOfWeek = day,
-                StartTime = startTime,
-                MediaPath = path,
-                Duration = meta.Duration
-            };
-            _weeklyPrograms.Add(weekly);
-            SetStatus($"Added weekly program: {day} at {startTime}");
+            if (!Enum.TryParse<DayOfWeek>(s, out day)) day = DayOfWeek.Monday;
         }
-        else
+        _weeklyPrograms.Add(new WeeklyProgram
         {
-            SetStatus("Invalid time format (HH:mm).");
+            DayOfWeek = day,
+            StartTime = TimeSpan.Zero,
+            MediaPath = path,
+            Duration = meta.Duration
+        });
+        RecalculateWeeklyTimes(day);
+        SetStatus($"Added weekly program: {day} (auto times)");
+    }
+
+    void RecalculateWeeklyTimes(DayOfWeek day)
+    {
+        var dayItems = _weeklyPrograms.Where(w => w.DayOfWeek == day).ToList();
+        var start = TimeSpan.Zero;
+        foreach (var w in dayItems)
+        {
+            w.StartTime = start;
+            start += w.Duration;
         }
     }
 
@@ -987,7 +1343,9 @@ public partial class MainWindow : Window
     {
         if (sender is System.Windows.Controls.Button btn && btn.DataContext is WeeklyProgram w)
         {
+            var day = w.DayOfWeek;
             _weeklyPrograms.Remove(w);
+            RecalculateWeeklyTimes(day);
         }
     }
 
@@ -1153,6 +1511,7 @@ public partial class MainWindow : Window
             ScheduleTitle.Text = $"Items for {s.Name}";
             var items = await _db.GetPlaylistItemsAsync(s.Id);
             _scheduleItems.Clear();
+            EnsureScheduleTimeline(s, items);
             foreach (var item in items) _scheduleItems.Add(item);
         }
         UpdateControlStates();

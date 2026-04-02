@@ -13,3 +13,4 @@ C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Engine\obj\Release\net9.
 C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Engine\obj\Release\net9.0\refint\Playout.Engine.dll
 C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Engine\obj\Release\net9.0\Playout.Engine.pdb
 C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Engine\obj\Release\net9.0\ref\Playout.Engine.dll
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Engine\obj\Release\net9.0\Playout.Engine.sourcelink.json

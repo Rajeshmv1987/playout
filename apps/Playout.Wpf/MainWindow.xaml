@@ -50,6 +50,12 @@
                     <Button x:Name="StopPlayoutBtn" Content="STOP" Width="100" Height="34" Background="#AA3939" FontWeight="Bold" Margin="8,0,0,0" Click="StopBtn_Click"/>
                 </StackPanel>
 
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                    <TextBlock x:Name="SourceModeText" Text="MODE: ---" Foreground="#007ACC" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="NowPlayingText" Text="NOW: ---" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="NowRangeText" Text="TIME: --:--:--  →  --:--:--" Foreground="#AAA" HorizontalAlignment="Center"/>
+                </StackPanel>
+
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
                     <Border x:Name="OnAirIndicator" Background="#333" CornerRadius="4" Padding="15,5" Margin="0,0,10,0">
                         <TextBlock x:Name="OnAirText" Text="OFF AIR" FontWeight="Bold" Foreground="Gray"/>
@@ -93,6 +99,23 @@
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
+                </Border>
+
+                <TextBlock Text="FILES (MULTI SELECT)" DockPanel.Dock="Top" FontSize="12" FontWeight="Bold" Foreground="#888" Margin="0,10,0,5"/>
+                <Border BorderBrush="#3F3F46" BorderThickness="1" CornerRadius="2" Height="200">
+                    <ListBox x:Name="ExplorerFilesList" Background="#252526" Foreground="White" BorderThickness="0" SelectionMode="Extended"
+                             PreviewMouseLeftButtonDown="ExplorerFilesList_PreviewMouseLeftButtonDown"
+                             PreviewMouseMove="ExplorerFilesList_PreviewMouseMove">
+                        <ListBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Select All" Click="ExplorerSelectAll_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Add to Playlist" Click="ExplorerAddToPlaylist_Click"/>
+                                <MenuItem Header="Add to Schedule" Click="ExplorerAddToSchedule_Click"/>
+                                <MenuItem Header="Add to Filler Pool" Click="ExplorerAddToFiller_Click"/>
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
+                    </ListBox>
                 </Border>
             </DockPanel>
 
@@ -264,10 +287,7 @@
                             <ComboBoxItem Content="Sunday"/>
                         </ComboBox>
                         
-                        <TextBlock Text="Start Time (HH:mm):" Foreground="#AAA" Margin="0,0,0,5"/>
-                        <TextBox x:Name="WeeklyTimeBox" Text="12:00" Height="28" Margin="0,0,0,10"/>
-                        
-                        <Button Content="Add Fixed Program" Click="AddWeeklyProgram_Click" Height="30" Margin="0,10,0,20" Background="#007ACC"/>
+                        <Button Content="Add Program (Auto Time)" Click="AddWeeklyProgram_Click" Height="30" Margin="0,10,0,20" Background="#007ACC"/>
                         
                         <TextBlock Text="AUTO FILLER POOL" FontSize="18" FontWeight="Bold" Margin="0,10,0,15" Foreground="#007ACC"/>
                         <ListBox x:Name="FillerPoolList" Height="250" Background="#252526" Foreground="White" AllowDrop="True" Drop="FillerPoolList_Drop" DragOver="PlaylistList_DragOver">
@@ -290,11 +310,12 @@
                     <DockPanel Grid.Column="1" Margin="20,0,0,0">
                         <TextBlock Text="WEEKLY MASTER SCHEDULE" DockPanel.Dock="Top" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" Foreground="#007ACC"/>
                         <Border BorderBrush="#3F3F46" BorderThickness="1">
-                            <ListView x:Name="WeeklyProgramsList" Background="#252526" Foreground="White">
+                            <ListView x:Name="WeeklyProgramsList" Background="#252526" Foreground="White" AllowDrop="True" Drop="WeeklyProgramsList_Drop" DragOver="PlaylistList_DragOver">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="DAY" Width="100" DisplayMemberBinding="{Binding DayOfWeek}" />
-                                        <GridViewColumn Header="START" Width="100" DisplayMemberBinding="{Binding StartTime}" />
+                                        <GridViewColumn Header="START" Width="90" DisplayMemberBinding="{Binding StartTime, StringFormat=hh\\:mm\\:ss}" />
+                                        <GridViewColumn Header="END" Width="90" DisplayMemberBinding="{Binding EndTime, StringFormat=hh\\:mm\\:ss}" />
                                         <GridViewColumn Header="FILE NAME" Width="300" DisplayMemberBinding="{Binding FileName}" />
                                         <GridViewColumn Header="ACTION" Width="80">
                                             <GridViewColumn.CellTemplate>
