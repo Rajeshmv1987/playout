@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using Playout.Core.Models;
 using Playout.Engine.Abstractions;
 using Playout.Engine.Types;
@@ -35,34 +36,70 @@ public sealed class FfmpegProcessFrameSource : IFrameSource
             ? $"-t {(item.MarkOut - item.MarkIn).TotalSeconds:F3}" 
             : "";
 
+        var networkArgs = IsNetworkUrl(item.MediaPath)
+            ? "-fflags nobuffer -flags low_delay -probesize 32 -analyzeduration 0 -rw_timeout 5000000"
+            : "";
+
         var vPsi = new ProcessStartInfo
         {
             FileName = "ffmpeg",
-            Arguments = $"-hide_banner -loglevel error -nostdin {seekArg} -i \"{item.MediaPath}\" {durationArg} -vf scale={_width}:{_height},fps={_fps.Num}/{_fps.Den} -pix_fmt bgra -f rawvideo -",
+            Arguments = $"-hide_banner -loglevel error -nostdin {networkArgs} {seekArg} -i \"{item.MediaPath}\" {durationArg} -vf scale={_width}:{_height},fps={_fps.Num}/{_fps.Den} -pix_fmt bgra -f rawvideo -",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
 
-        var aPsi = new ProcessStartInfo
+        ProcessStartInfo? aPsi = null;
+        if (!IsNetworkUrl(item.MediaPath))
         {
-            FileName = "ffmpeg",
-            Arguments = $"-hide_banner -loglevel error -nostdin {seekArg} -i \"{item.MediaPath}\" {durationArg} -af aresample={sampleRate},pan=stereo|c0=c0|c1=c1 -f f32le -",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+            aPsi = new ProcessStartInfo
+            {
+                FileName = "ffmpeg",
+                Arguments = $"-hide_banner -loglevel error -nostdin {networkArgs} {seekArg} -i \"{item.MediaPath}\" {durationArg} -af aresample={sampleRate},pan=stereo|c0=c0|c1=c1 -f f32le -",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+        }
 
         using var vProc = Process.Start(vPsi);
-        using var aProc = Process.Start(aPsi);
+        using var aProc = aPsi != null ? Process.Start(aPsi) : null;
 
-        if (vProc == null || aProc == null) yield break;
+        if (vProc == null) yield break;
 
-        // Error reading loops to prevent pipe blocks
-        _ = Task.Run(async () => { while (!vProc.StandardError.EndOfStream) await vProc.StandardError.ReadLineAsync(ct); }, ct);
-        _ = Task.Run(async () => { while (!aProc.StandardError.EndOfStream) await aProc.StandardError.ReadLineAsync(ct); }, ct);
+        var vErr = new StringBuilder();
+        var aErr = new StringBuilder();
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                while (!ct.IsCancellationRequested && !vProc.StandardError.EndOfStream)
+                {
+                    var line = await vProc.StandardError.ReadLineAsync(ct);
+                    if (line == null) break;
+                    if (vErr.Length < 4096) vErr.AppendLine(line);
+                }
+            }
+            catch { }
+        }, ct);
+        if (aProc != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    while (!ct.IsCancellationRequested && !aProc.StandardError.EndOfStream)
+                    {
+                        var line = await aProc.StandardError.ReadLineAsync(ct);
+                        if (line == null) break;
+                        if (aErr.Length < 4096) aErr.AppendLine(line);
+                    }
+                }
+                catch { }
+            }, ct);
+        }
 
         var videoBytes = _width * _height * 4;
         var audioBytes = samplesPerFrame * channels * 4; // 4 bytes per float (f32le)
@@ -92,20 +129,21 @@ public sealed class FfmpegProcessFrameSource : IFrameSource
                 }
                 if (shouldExit) break;
 
-                // Read audio
-                int aRead = 0;
-                while (aRead < audioBytes)
-                {
-                    int n = await aProc.StandardOutput.BaseStream.ReadAsync(audioBuffer.AsMemory(aRead, audioBytes - aRead), ct);
-                    if (n <= 0) break; // Audio might end early, continue with silence if needed
-                    aRead += n;
-                }
-
                 float[]? audioData = null;
-                if (aRead > 0)
+                if (aProc != null)
                 {
-                    audioData = new float[aRead / 4];
-                    Buffer.BlockCopy(audioBuffer, 0, audioData, 0, aRead);
+                    int aRead = 0;
+                    while (aRead < audioBytes)
+                    {
+                        int n = await aProc.StandardOutput.BaseStream.ReadAsync(audioBuffer.AsMemory(aRead, audioBytes - aRead), ct);
+                        if (n <= 0) break;
+                        aRead += n;
+                    }
+                    if (aRead > 0)
+                    {
+                        audioData = new float[aRead / 4];
+                        Buffer.BlockCopy(audioBuffer, 0, audioData, 0, aRead);
+                    }
                 }
 
                 yield return new VideoFrame(_width, _height, PixelFormat.BGRA, (byte[])videoBuffer.Clone(), index++)
@@ -138,9 +176,31 @@ public sealed class FfmpegProcessFrameSource : IFrameSource
         finally
         {
             try { if (!vProc.HasExited) vProc.Kill(true); } catch { }
-            try { if (!aProc.HasExited) aProc.Kill(true); } catch { }
+            if (aProc != null)
+            {
+                try { if (!aProc.HasExited) aProc.Kill(true); } catch { }
+            }
+
+            if (!ct.IsCancellationRequested && DateTimeOffset.Now < endAt - TimeSpan.FromSeconds(1) && vProc.HasExited && vProc.ExitCode != 0)
+            {
+                var err = vErr.ToString().Trim();
+                if (string.IsNullOrWhiteSpace(err)) err = aErr.ToString().Trim();
+                if (!string.IsNullOrWhiteSpace(err)) throw new InvalidOperationException(err);
+            }
             vProc.Dispose();
-            aProc.Dispose();
+            aProc?.Dispose();
         }
+    }
+
+    static bool IsNetworkUrl(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+        return path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+               path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+               path.StartsWith("rtmp://", StringComparison.OrdinalIgnoreCase) ||
+               path.StartsWith("rtmps://", StringComparison.OrdinalIgnoreCase) ||
+               path.StartsWith("srt://", StringComparison.OrdinalIgnoreCase) ||
+               path.StartsWith("udp://", StringComparison.OrdinalIgnoreCase) ||
+               path.StartsWith("tcp://", StringComparison.OrdinalIgnoreCase);
     }
 }

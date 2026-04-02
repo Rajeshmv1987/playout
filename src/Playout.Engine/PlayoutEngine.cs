@@ -58,6 +58,8 @@ public sealed class PlayoutEngine
                 if (_manualPlaylist != null && manualIndex < _manualPlaylist.Count())
                 {
                     var item = _manualPlaylist.ElementAt(manualIndex);
+                    if (!item.FixedStartUtc.HasValue) item.FixedStartUtc = now;
+                    if (item.Duration == TimeSpan.Zero) item.Duration = item.EffectiveDuration;
                     _currentItem = item;
                     _logger?.LogEntry(item, "Manual Start");
                     await PlayItemAsync(item, ct);
@@ -178,9 +180,9 @@ public sealed class PlayoutEngine
             MediaId = scheduledItem.MediaId,
             MediaPath = scheduledItem.MediaPath,
             FileName = scheduledItem.FileName,
-            FixedStartUtc = now,
+            FixedStartUtc = scheduledItem.FixedStartUtc,
             StartType = scheduledItem.StartType,
-            Duration = scheduledItem.Duration - elapsed,
+            Duration = scheduledItem.Duration,
             Padding = TimeSpan.Zero,
             SortOrder = scheduledItem.SortOrder,
             MarkIn = newMarkIn,

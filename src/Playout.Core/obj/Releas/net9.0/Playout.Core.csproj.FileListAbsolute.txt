@@ -1,0 +1,13 @@
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\bin\Releas\net9.0\Playout.Core.deps.json
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\bin\Releas\net9.0\Playout.Core.dll
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\bin\Releas\net9.0\Playout.Core.pdb
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\Playout.Core.csproj.AssemblyReference.cache
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\Playout.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\Playout.Core.AssemblyInfoInputs.cache
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\Playout.Core.AssemblyInfo.cs
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\Playout.Core.csproj.CoreCompileInputs.cache
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\Playout.Core.sourcelink.json
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\Playout.Core.dll
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\refint\Playout.Core.dll
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\Playout.Core.pdb
+C:\Users\JN Programing\Desktop\tvchannel\tv\src\Playout.Core\obj\Releas\net9.0\ref\Playout.Core.dll

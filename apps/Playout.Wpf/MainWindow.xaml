@@ -67,67 +67,16 @@
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="350"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="380"/>
             </Grid.ColumnDefinitions>
 
-            <DockPanel Grid.Column="0" Margin="0,0,10,0">
-                <TextBlock Text="MEDIA EXPLORER" DockPanel.Dock="Top" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" Foreground="#007ACC"/>
-                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
-                    <ComboBox x:Name="ExplorerDrivesCombo" SelectionChanged="ExplorerDrivesCombo_SelectionChanged" Height="28" Margin="0,0,0,5"/>
-                    <TextBox x:Name="FolderBox" Height="28" VerticalContentAlignment="Center" Margin="0,0,0,5" KeyDown="FolderBox_KeyDown"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Button x:Name="BrowseBtn" Content="Browse" Click="BrowseBtn_Click" Grid.Column="0" Height="30" Margin="0,0,2,0"/>
-                        <Button x:Name="ScanBtn" Content="Scan" Click="ScanBtn_Click" Grid.Column="1" Height="30" Margin="2,0,0,0"/>
-                    </Grid>
-                </StackPanel>
-
-                <Border BorderBrush="#3F3F46" BorderThickness="1" CornerRadius="2" Height="430">
-                    <TreeView x:Name="MediaTreeView" Background="#252526" Foreground="White" BorderThickness="0"
-                              SelectedItemChanged="MediaTreeView_SelectedItemChanged"
-                              MouseMove="MediaTreeView_MouseMove">
-                        <TreeView.ItemTemplate>
-                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Icon}" Margin="0,0,5,0" Foreground="#007ACC"/>
-                                    <TextBlock Text="{Binding Name}"/>
-                                </StackPanel>
-                            </HierarchicalDataTemplate>
-                        </TreeView.ItemTemplate>
-                    </TreeView>
-                </Border>
-
-                <TextBlock Text="FILES (MULTI SELECT)" DockPanel.Dock="Top" FontSize="12" FontWeight="Bold" Foreground="#888" Margin="0,10,0,5"/>
-                <Border BorderBrush="#3F3F46" BorderThickness="1" CornerRadius="2" Height="200">
-                    <ListBox x:Name="ExplorerFilesList" Background="#252526" Foreground="White" BorderThickness="0" SelectionMode="Extended"
-                             PreviewMouseLeftButtonDown="ExplorerFilesList_PreviewMouseLeftButtonDown"
-                             PreviewMouseMove="ExplorerFilesList_PreviewMouseMove">
-                        <ListBox.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Select All" Click="ExplorerSelectAll_Click"/>
-                                <Separator/>
-                                <MenuItem Header="Add to Playlist" Click="ExplorerAddToPlaylist_Click"/>
-                                <MenuItem Header="Add to Schedule" Click="ExplorerAddToSchedule_Click"/>
-                                <MenuItem Header="Add to Filler Pool" Click="ExplorerAddToFiller_Click"/>
-                            </ContextMenu>
-                        </ListBox.ContextMenu>
-                    </ListBox>
-                </Border>
-            </DockPanel>
-
-            <TabControl x:Name="MainTabs" Grid.Column="1" Background="#1E1E1E" BorderThickness="0" SelectionChanged="MainTabs_SelectionChanged">
+            <TabControl x:Name="MainTabs" Grid.Column="0" Background="#1E1E1E" BorderThickness="0" SelectionChanged="MainTabs_SelectionChanged">
             <!-- LIVE TELECAST TAB -->
             <TabItem Header="LIVE TELECAST" Foreground="White" Background="#2D2D30">
                 <Grid Margin="10">
                     <DockPanel>
                         <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                <Button x:Name="PlayPlaylistBtn" Content="PLAY PLAYLIST" Width="140" Height="40" Background="#2D882D" FontWeight="Bold" Click="PlayPlaylistBtn_Click" IsEnabled="False"/>
-                            </StackPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <StackPanel VerticalAlignment="Center" Margin="0,0,20,0" HorizontalAlignment="Right">
                                     <TextBlock x:Name="NextItemText" Text="NEXT: ---" Foreground="#007ACC" FontSize="12" FontWeight="Bold"/>
@@ -138,23 +87,11 @@
 
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="350"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Border Grid.Row="0" BorderBrush="#3F3F46" BorderThickness="1" Background="Black" Margin="0,0,0,10">
-                                <Grid>
-                                    <Image x:Name="PreviewImage" Stretch="Uniform" />
-                                    <!-- Audio Meter Placeholder -->
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Height="100">
-                                        <ProgressBar x:Name="AudioMeterL" Value="0" Orientation="Vertical" Width="10" Background="#222" Foreground="Lime" Minimum="0" Maximum="100"/>
-                                        <ProgressBar x:Name="AudioMeterR" Value="0" Orientation="Vertical" Width="10" Background="#222" Foreground="Lime" Margin="2,0,0,0" Minimum="0" Maximum="100"/>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-
-                            <Border Grid.Row="1" BorderBrush="#3F3F46" BorderThickness="1">
+                            <Border Grid.Row="0" BorderBrush="#3F3F46" BorderThickness="1">
                                 <ListView x:Name="PlaylistList" AllowDrop="True" Drop="PlaylistList_Drop" DragOver="PlaylistList_DragOver" BorderThickness="0">
                                     <ListView.View>
                                         <GridView>
@@ -189,8 +126,20 @@
                                 </ListView>
                             </Border>
 
-                            <DockPanel Grid.Row="2" Margin="0,10,0,0">
+                            <DockPanel Grid.Row="1" Margin="0,10,0,0">
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                                    <ComboBox x:Name="LiveInputTypeCombo" Width="110" Height="28" SelectedIndex="0">
+                                        <ComboBoxItem Content="NDI"/>
+                                        <ComboBoxItem Content="RTMP"/>
+                                        <ComboBoxItem Content="SRT"/>
+                                        <ComboBoxItem Content="YouTube"/>
+                                    </ComboBox>
+                                    <Button x:Name="NdiSearchBtn" Content="🔎" Width="34" Height="28" Margin="8,0,0,0" Click="NdiSearchBtn_Click" ToolTip="Search NDI sources"/>
+                                    <TextBox x:Name="LiveInputBox" Width="318" Height="28" Margin="8,0,0,0" VerticalContentAlignment="Center"/>
+                                </StackPanel>
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                    <Button x:Name="PlayLiveBtn" Content="PLAY LIVE" Width="110" Click="PlayLiveBtn_Click" Background="#2D882D"/>
+                                    <Button x:Name="PlayPlaylistBtn" Content="PLAY PLAYLIST" Width="120" Click="PlayPlaylistBtn_Click" Background="#2D882D" IsEnabled="False"/>
                                     <Button Content="Load" Width="80" Click="LoadPlaylistBtn_Click"/>
                                     <Button Content="Save" Width="80" Click="SavePlaylistBtn_Click"/>
                                     <Button Content="Delete" Width="80" Click="DeletePlaylistBtn_Click" Background="#553939"/>
@@ -207,60 +156,53 @@
                 <Grid Margin="20">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                        <TextBlock Text="DAY SCHEDULES" FontSize="18" FontWeight="Bold" Foreground="#007ACC" VerticalAlignment="Center"/>
-                        <Button Content="Create New Schedule" Click="CreateNewSchedule_Click" Height="30" Margin="15,0,0,0"/>
-                    </StackPanel>
-
-                    <Grid Grid.Row="1">
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="220"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0">
-                            <Calendar x:Name="ScheduleCalendar" Margin="0,0,0,10" SelectedDatesChanged="ScheduleCalendar_SelectedDatesChanged"/>
-                            <ListBox x:Name="DaySchedulesList" Height="250" BorderThickness="1" BorderBrush="#3F3F46" SelectionChanged="DaySchedulesList_SelectionChanged">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid Margin="5">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{Binding Name}" Foreground="White" VerticalAlignment="Center"/>
-                                            <Button Grid.Column="1" Content="✕" Click="DeleteSchedule_Click" Background="#AA3939" Width="20" Height="20" Padding="0" Margin="5,0,0,0"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </StackPanel>
+                        <TextBlock Grid.Column="0" Text="DATE" Foreground="#AAA" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <DatePicker Grid.Column="1" x:Name="ScheduleDatePicker" SelectedDateChanged="ScheduleDatePicker_SelectedDateChanged" Margin="0,0,20,0"/>
 
-                        <DockPanel Grid.Column="1" Margin="20,0,0,0">
-                        <TextBlock x:Name="ScheduleTitle" Text="Select a date or schedule" DockPanel.Dock="Top" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" Foreground="#007ACC"/>
-                        
-                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                            <Button x:Name="PlayScheduleBtn" Content="PLAY SCHEDULE" Click="PlayScheduleBtn_Click" Width="150" Height="35" Background="#2D882D" FontWeight="Bold" Margin="0,0,10,0" IsEnabled="False"/>
-                            <Button Content="Load to Playout" Click="LoadScheduleToPlayout_Click" Width="150" Height="35" Margin="0,0,10,0"/>
-                            <Button Content="Save Schedule" Click="SaveSchedule_Click" Width="150" Height="35" Background="#007ACC" FontWeight="Bold"/>
-                        </StackPanel>
-
-                        <Border BorderBrush="#3F3F46" BorderThickness="1">
-                            <ListView x:Name="ScheduleItemsList" BorderThickness="0" AllowDrop="True" Drop="ScheduleItemsList_Drop" DragOver="PlaylistList_DragOver">
-                                <ListView.View>
-                                    <GridView>
-                                        <GridViewColumn Header="START TIME" Width="100" DisplayMemberBinding="{Binding FixedStartUtc, StringFormat=HH:mm:ss}" />
-                                        <GridViewColumn Header="FILE NAME" Width="300" DisplayMemberBinding="{Binding FileName}" />
-                                        <GridViewColumn Header="DURATION" Width="100" DisplayMemberBinding="{Binding Duration}" />
-                                    </GridView>
-                                </ListView.View>
-                            </ListView>
-                        </Border>
-                    </DockPanel>
+                        <Button Grid.Column="3" x:Name="TodayScheduleBtn" Content="Today" Click="TodayScheduleBtn_Click" Height="28" Width="80"/>
                     </Grid>
+
+                    <TextBlock Grid.Row="1" x:Name="ScheduleTitle" Text="Select a date or schedule" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" Foreground="#007ACC"/>
+
+                    <Border Grid.Row="2" BorderBrush="#3F3F46" BorderThickness="1">
+                        <ListView x:Name="ScheduleItemsList" BorderThickness="0" AllowDrop="True" Drop="ScheduleItemsList_Drop" DragOver="PlaylistList_DragOver"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  ScrollViewer.CanContentScroll="False"
+                                  ScrollViewer.PanningMode="VerticalOnly"
+                                  KeyDown="ScheduleItemsList_KeyDown">
+                            <ListView.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Remove Selected Item" Click="RemoveSelectedScheduleItem_Click"/>
+                                </ContextMenu>
+                            </ListView.ContextMenu>
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="START TIME" Width="120" DisplayMemberBinding="{Binding FixedStartUtc, StringFormat=HH:mm:ss}" />
+                                    <GridViewColumn Header="FILE NAME" Width="420" DisplayMemberBinding="{Binding FileName}" />
+                                    <GridViewColumn Header="DURATION" Width="120" DisplayMemberBinding="{Binding Duration}" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Border>
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button x:Name="PlayScheduleBtn" Content="PLAY SCHEDULE" Click="PlayScheduleBtn_Click" Width="150" Height="35" Background="#2D882D" FontWeight="Bold" Margin="0,0,10,0" IsEnabled="False"/>
+                        <Button Content="Load to Playout" Click="LoadScheduleToPlayout_Click" Width="150" Height="35" Margin="0,0,10,0"/>
+                        <Button Content="Save Schedule" Click="SaveSchedule_Click" Width="150" Height="35" Background="#007ACC" FontWeight="Bold"/>
+                    </StackPanel>
                 </Grid>
             </TabItem>
 
@@ -464,6 +406,89 @@
                 </StackPanel>
             </TabItem>
         </TabControl>
+
+            <Grid Grid.Column="1" Margin="10,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="PREVIEW" FontSize="14" FontWeight="Bold" Margin="0,0,0,6" Foreground="#007ACC"/>
+                <Border Grid.Row="1" BorderBrush="#3F3F46" BorderThickness="1" Background="Black" Height="210">
+                    <Grid>
+                        <Image x:Name="PreviewImage" Stretch="Uniform" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Height="90">
+                            <ProgressBar x:Name="AudioMeterL" Value="0" Orientation="Vertical" Width="10" Background="#222" Foreground="Lime" Minimum="0" Maximum="100"/>
+                            <ProgressBar x:Name="AudioMeterR" Value="0" Orientation="Vertical" Width="10" Background="#222" Foreground="Lime" Margin="2,0,0,0" Minimum="0" Maximum="100"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <DockPanel Grid.Row="2" Margin="0,6,0,10">
+                    <TextBlock x:Name="TimelineText" Text="00:00:00 / 00:00:00" Foreground="#AAA" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                    <ProgressBar x:Name="TimelineBar" Height="10" Margin="10,0,0,0" Minimum="0" Maximum="100" Value="0"/>
+                </DockPanel>
+
+                <Grid Grid.Row="3" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="BROWSER" FontSize="12" FontWeight="Bold" Foreground="#8CCBFF" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox Grid.Column="1" x:Name="FolderBox" Height="24" VerticalContentAlignment="Center" Margin="0,0,8,0" KeyDown="FolderBox_KeyDown"/>
+                    <Button Grid.Column="2" x:Name="BrowseBtn" Content="📁" Click="BrowseBtn_Click" Height="24" Width="34" Padding="0" ToolTip="Browse folder"/>
+                    <Button Grid.Column="3" x:Name="ScanBtn" Content="🔍" Click="ScanBtn_Click" Height="24" Width="34" Padding="0" Margin="6,0,0,0" ToolTip="Load path"/>
+                </Grid>
+
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" BorderBrush="#3F3F46" BorderThickness="1" CornerRadius="2" Margin="0,0,8,0">
+                        <TreeView x:Name="MediaTreeView" Background="#252526" Foreground="#F2F2F2" BorderThickness="0"
+                                  SelectedItemChanged="MediaTreeView_SelectedItemChanged"
+                                  MouseMove="MediaTreeView_MouseMove">
+                            <TreeView.ItemTemplate>
+                                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Icon}" Margin="0,0,6,0" Foreground="#8CCBFF"/>
+                                        <TextBlock Text="{Binding Name}" Foreground="#F2F2F2"/>
+                                    </StackPanel>
+                                </HierarchicalDataTemplate>
+                            </TreeView.ItemTemplate>
+                        </TreeView>
+                    </Border>
+
+                    <GridSplitter Grid.Column="1" Width="5" Background="#3F3F46" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+                    <Border Grid.Column="2" BorderBrush="#3F3F46" BorderThickness="1" CornerRadius="2" Margin="8,0,0,0">
+                    <ListBox x:Name="ExplorerFilesList" Background="#252526" Foreground="White" BorderThickness="0" SelectionMode="Extended"
+                             PreviewMouseLeftButtonDown="ExplorerFilesList_PreviewMouseLeftButtonDown"
+                             PreviewMouseMove="ExplorerFilesList_PreviewMouseMove"
+                             MouseLeftButtonUp="ExplorerFilesList_MouseLeftButtonUp"
+                             KeyDown="ExplorerFilesList_KeyDown">
+                        <ListBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Select All" Click="ExplorerSelectAll_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Add to Playlist" Click="ExplorerAddToPlaylist_Click"/>
+                                <MenuItem Header="Add to Schedule" Click="ExplorerAddToSchedule_Click"/>
+                                <MenuItem Header="Add to Filler Pool" Click="ExplorerAddToFiller_Click"/>
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
+                    </ListBox>
+                </Border>
+                </Grid>
+            </Grid>
         </Grid>
     </Grid>
 </Window>
