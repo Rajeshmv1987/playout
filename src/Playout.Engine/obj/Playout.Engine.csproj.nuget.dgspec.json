@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj": {}
+    "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj": {}
   },
   "projects": {
-    "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj": {
+    "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj",
+        "projectUniqueName": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj",
         "projectName": "Playout.Core",
-        "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj",
+        "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj",
         "packagesPath": "C:\\Users\\JN Programing\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Core\\obj\\",
+        "outputPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Core\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\NuGet.Config",
+          "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\NuGet.Config",
           "C:\\Users\\JN Programing\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
@@ -70,17 +70,17 @@
         }
       }
     },
-    "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj": {
+    "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj",
+        "projectUniqueName": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj",
         "projectName": "Playout.Engine",
-        "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj",
+        "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj",
         "packagesPath": "C:\\Users\\JN Programing\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Engine\\obj\\",
+        "outputPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Engine\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\NuGet.Config",
+          "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\NuGet.Config",
           "C:\\Users\\JN Programing\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
@@ -93,8 +93,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj": {
-                "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj"
+              "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj": {
+                "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj"
               }
             }
           }

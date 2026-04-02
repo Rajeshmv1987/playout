@@ -504,14 +504,14 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\apps\\Playout.Wpf\\Playout.Wpf.csproj",
+      "projectUniqueName": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\apps\\Playout.Wpf\\Playout.Wpf.csproj",
       "projectName": "Playout.Wpf",
-      "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\apps\\Playout.Wpf\\Playout.Wpf.csproj",
+      "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\apps\\Playout.Wpf\\Playout.Wpf.csproj",
       "packagesPath": "C:\\Users\\JN Programing\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\apps\\Playout.Wpf\\obj\\",
+      "outputPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\apps\\Playout.Wpf\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\NuGet.Config",
+        "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\NuGet.Config",
         "C:\\Users\\JN Programing\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
@@ -524,11 +524,11 @@
         "net9.0-windows7.0": {
           "targetAlias": "net9.0-windows",
           "projectReferences": {
-            "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj": {
-              "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj"
+            "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj": {
+              "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Core\\Playout.Core.csproj"
             },
-            "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj": {
-              "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj"
+            "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj": {
+              "projectPath": "C:\\Users\\JN Programing\\Desktop\\tvchannel\\tvchannel\\tv\\src\\Playout.Engine\\Playout.Engine.csproj"
             }
           }
         }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Playout.Engine")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b1cab7b6f588fa220f0a2b4ccbafe2c772d44041")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4752d1cf48a27ac1ee146e4c8e39bb6347545aec")]
 [assembly: System.Reflection.AssemblyProductAttribute("Playout.Engine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Playout.Engine")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
